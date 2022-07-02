@@ -23,9 +23,8 @@ const (
 	Cw  = 4452.56 //Cw地层水比热
 	Hs  = 222.49  //Hs设计沉没度
 	Qs  = 27.8    //Qs设计排量
-	//93. Q16-6-105B
-	s   = 4       //s抽油机冲程
-	n   = 4       //n抽油机冲次
+	s   = 3      //s抽油机冲程
+	n   = 6       //n抽油机冲次
 	Ab  = 0.7     //Ab抽油机泵效
 	a   = 9.9719  //excel回归得a的值
 	b   = 3.8801  //excel回归得b的值
@@ -109,12 +108,14 @@ func chouYouGan(Lp float64, Zp float64) float64 {
 	//Wl1下冲程中液柱的重力与对抽油杆的浮力产生的载荷，
 	var Pmax, Pmin, dPmax, dPmin, dFu, dIrd, dFd, dFrl float64
 	Zrod := float64(7850)               //Zrod抽油杆的密度
-	r := float64(860)                   //r曲柄半径
-	l := float64(3200)                  //l连杆长度
+	r := float64(909)                   //r曲柄半径
+	l := float64(3505)                  //l连杆长度
 	uf := 0.1                           //uf凡尔流动系数
+	//D = 0.044 m 抽油杆直径
 	fp := math.Pi * 0.044 * 0.044 / 4   //fp抽油泵活塞横截面积
-	fo := math.Pi * 0.0272 * 0.0272 / 4 //fo凡尔孔截面积
-	//dt油管内径,dr 1-5级油管直径}
+	// Df = 0.0273 mm
+	fo := math.Pi * 0.027 * 0.027 / 4 //fo凡尔孔截面积
+	//dt油管内径,dr 1-5级油管直径
 	dr := []float64{0.016, 0.019, 0.022, 0.025, 0.029}
 	//1-5级抽油杆的横截面积
 	fr := []float64{math.Pi * dr[0] * dr[0] / 4, math.Pi * dr[1] * dr[1] / 4, math.Pi * dr[2] * dr[2] / 4, math.Pi * dr[3] * dr[3] / 4, math.Pi * dr[4] * dr[4] / 4}
@@ -132,8 +133,10 @@ func chouYouGan(Lp float64, Zp float64) float64 {
 		W1 = 0
 		H1 = 0
 		H0 = H - Lp
-		Pmax = W10 + 1717                                                     //1717  from P300 4.2
-		Flv = (Zp * fp * fp * fp * s * s * n * n) / (729 * uf * uf * fo * fo) //P301  12-43
+		//1717  from P300 4.2
+		Pmax = W10 + 1717
+		//P311  12-43  由液流通过游动阀的压头损失而产生的活塞下行阻力
+		Flv = (Zp * fp * fp * fp * s * s * n * n) / (729 * uf * uf * fo * fo)
 		Pmin = -1717 - Flv
 		dH = 0.01
 		j = 0
@@ -146,16 +149,17 @@ func chouYouGan(Lp float64, Zp float64) float64 {
 			Have = H0 + dH/2
 			t = wenDu(Have)
 			u = nianDu(t)
-			//P297  12-21
+			//P307  12-21  抽油杆柱的重力
 			dWr = float64(Zrod) * g * fr[j] * dH
-			//12-48
+			//P312 12-48  最大载荷
 			dIru = dWr * s * n * n * (1 + r/l) / 1790
-			//12-49
+			//P312 12-49  最小载荷
 			dIrd = dWr * s * n * n * (1 - r/l) / 1790
-			//12-22
+			//P307 12-22  抽油杆柱在液体中的重力
 			dWrd = dWr - Zp*g*fr[j]*dH
+			// 油管内经与抽油杆直径之比
 			m = Do / dr[j]
-			//12-39  vmax求法在公式12-39下面
+			//P310 12-39 抽油杆柱与液柱之间的摩擦力，  vmax求法在公式12-39下面
 			dFrl = 2 * math.Pi * u / 1000 * dH * (m*m - 1) / ((m*m+1)*math.Log(m) - (m*m - 1)) * Vmax
 			//0.015可能是 4.1
 			dFu = 0.015*dWr + dFrl/1.3
@@ -164,8 +168,8 @@ func chouYouGan(Lp float64, Zp float64) float64 {
 			dPmin = dWrd - dIrd - dFd //最小载荷增量
 			Pmax = Pmax + dPmax
 			Pmin = Pmin + dPmin
-			Sigmaa = (Pmax - Pmin) / (2 * fr[j])      //12-102
-			Sigmac = math.Pow(Sigmaa*Pmax/fr[j], 0.5) //12-103
+			Sigmaa = (Pmax - Pmin) / (2 * fr[j])      //P325 12-102
+			Sigmac = math.Pow(Sigmaa*Pmax/fr[j], 0.5) //P325 12-103
 			if Sigmac <= Sigma1 {                     //符合抽油杆强度条件
 				if H1 >= H {
 					break
@@ -196,8 +200,8 @@ func chouYouGan(Lp float64, Zp float64) float64 {
 		}
 	}
 	for i = 0; i <= j; i++ {
-		fmt.Printf("第%d级抽油杆直径是：dr[%d]=%.3f m ,", i+1, i+1, dr[i])
-		fmt.Printf("第%d级抽油杆长度是：L[%d]=%.3f m \n ", i+1, i+1, L[i])
+		fmt.Printf("第%d级抽油杆直径是：dr[%d]=%.3f m,", i+1, i+1, dr[i])
+		fmt.Printf("第%d级抽油杆长度是：L[%d]=%.3f m\n", i+1, i+1, L[i])
 	}
 
 	fmt.Printf("最大载荷Pmax:%fN\n", Pmax)
@@ -207,11 +211,11 @@ func chouYouGan(Lp float64, Zp float64) float64 {
 }
 
 func jiaoHe() float64 {
-	Pmaxa := 160000.0
-	Pmax := 68402.60
-	Pmin := 2116.55
+	Pmaxa := 100000.0
+	Pmax := 57153.71
+	Pmin := -1667.18
 	var Mmax, M0max, M1max, M2max float64
-	Mmaxa := 105000.0
+	Mmaxa := 48000.0
 	var Nmax float64
 	e := 0.9
 
@@ -220,7 +224,9 @@ func jiaoHe() float64 {
 	} else {
 		fmt.Printf("所选抽油机不满足载荷要求,需重新选择\n")
 	}
+	//P317 12-75 最大扭矩
 	M0max = s * (Pmax - Pmin) / 4
+	//P317 最大扭矩的经验公式
 	M1max = 300*s + 0.236*s*(Pmax-Pmin)
 	M2max = 1800*s + 0.202*s*(Pmax-Pmin)
 	Mmax = M0max
@@ -231,7 +237,7 @@ func jiaoHe() float64 {
 	if Mmax < M1max {
 		Mmax = M1max
 	}
-	fmt.Printf("曲柄最大扭矩:  %fN.m\n", Mmax)
+	fmt.Printf("曲柄最大扭矩:  %fN.m2\n", Mmax)
 
 	if Mmax < Mmaxa {
 		fmt.Printf("所选抽油机曲柄满足最大扭矩要求\n")
@@ -246,13 +252,13 @@ func jiaoHe() float64 {
 }
 
 func main() {
-	//wenDu(1520)
-	//nianDu(40)
-	//liuYa()
-	//pingJunMiDu()
-	//bengYa(919.6912)
+	wenDu(1520)
+	nianDu(40)
+	liuYa()
+	pingJunMiDu()
+	bengYa(919.6912)
 	bengShen(5.26,2.00,919.69)
-	//bengJing()
-	chouYouGan(1368.00,919.69)
+	bengJing()
+	chouYouGan(1158.00,919.69)
 	jiaoHe()
 }
