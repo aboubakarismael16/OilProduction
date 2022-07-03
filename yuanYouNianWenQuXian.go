@@ -8,9 +8,10 @@ import (
 
 func main() {
 	categories := map[string]string{
-		"A2": "Small", "A3": "Normal", "A4": "Large", "B1": "Apple", "C1": "Orange", "D1": "Pear"}
-	values := map[string]int{
-		"B2": 2, "C2": 3, "D2": 3, "B3": 5, "C3": 2, "D3": 4, "B4": 6, "C4": 7, "D4": 8}
+		"A1": "温度℃",  "B1": "粘度mPa•s"}
+	values := map[string]float64{
+		"A2": 40.00, "A3": 45.00,"A4": 50.00,"A5": 55.00,"A6": 60.00,"A7": 65.00,"A8": 70.00,"A9": 75.00,"A10": 80.00,"A11":85.00,
+		"B2": 5699, "B3": 3608,"B4": 2398,"B5": 1656,"B6": 1182,"B7": 866,"B8": 650,"B9": 497,"B10": 387,"B11": 306 }
 	f := excelize.NewFile()
 	for k, v := range categories {
 		f.SetCellValue("Sheet1", k, v)
@@ -22,19 +23,13 @@ func main() {
         "type": "line",
         "series": [
         {
-            "name": "Sheet1!$A$2",
-            "categories": "Sheet1!$B$1:$D$1",
-            "values": "Sheet1!$B$2:$D$2"
+            "name": "Sheet1!$A$1",
+			"categories": "Sheet1!$A$2:$A$11"
         },
         {
-            "name": "Sheet1!$A$3",
-            "categories": "Sheet1!$B$1:$D$1",
-            "values": "Sheet1!$B$3:$D$3"
-        },
-        {
-            "name": "Sheet1!$A$4",
-            "categories": "Sheet1!$B$1:$D$1",
-            "values": "Sheet1!$B$4:$D$4"
+            "name": "Sheet1!$B$1",
+			"categories": "Sheet1!$B$1",
+            "values": "Sheet1!$B$2:$B$11"
         }],
         "format":
         {
@@ -53,23 +48,33 @@ func main() {
         },
         "title":
         {
-            "name": "Fruit Line Chart"
+            "name": "原油粘温曲线"
         },
         "plotarea":
         {
             "show_bubble_size": true,
             "show_cat_name": false,
             "show_leader_lines": false,
-            "show_percent": true,
+            "show_percent": false,
             "show_series_name": true,
-            "show_val": true
+            "show_val": false
         },
-        "show_blanks_as": "zero"
+        "show_blanks_as": "zero",
+		"x_axis":
+        {
+			"maximum": 90,
+            "minimum": 30
+        },
+        "y_axis":
+        {
+            "maximum": 6000,
+            "minimum": 0
+        }
     }`); err != nil {
 		fmt.Println(err)
 	}
 	// Save workbook
-	if err := f.SaveAs("Book1.xlsx"); err != nil {
+	if err := f.SaveAs("原油粘温曲线.xlsx"); err != nil {
 		fmt.Println(err)
 	}
 }

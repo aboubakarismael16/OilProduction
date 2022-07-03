@@ -3,14 +3,15 @@ package main
 import (
 	"fmt"
 	"github.com/360EntSecGroup-Skylar/excelize"
-
 )
 
 func main() {
 	categories := map[string]string{
-		"A2": "Small", "A3": "Normal", "A4": "Large", "B1": "Apple", "C1": "Orange", "D1": "Pear"}
-	values := map[string]int{
-		"B2": 2, "C2": 3, "D2": 3, "B3": 5, "C3": 2, "D3": 4, "B4": 6, "C4": 7, "D4": 8}
+		"A1": "地温", "B1": "井温"}
+	values := map[string]float64{
+		"A2": 33.62, "A3": 43.01, "A4": 52.40, "A5": 61.79, "A6": 64.92, "A7": 71.18, "A8": 74.31, "A9": 77.44, "A10": 81.20,
+		"B2": 42.88, "B3": 52.17, "B4": 61.29, "B5": 69.95, "B6": 72.61, "B7": 77.32, "B8": 79.18, "B9": 80.53, "B10": 81.2,
+		"C2": 0, "C3": 300, "C4": 600, "C5": 900, "C6": 1000, "C7": 1200, "C8": 1300, "C9": 1400, "C10": 1520}
 	f := excelize.NewFile()
 	for k, v := range categories {
 		f.SetCellValue("Sheet1", k, v)
@@ -22,19 +23,14 @@ func main() {
         "type": "line",
         "series": [
         {
-            "name": "Sheet1!$A$2",
-            "categories": "Sheet1!$B$1:$D$1",
-            "values": "Sheet1!$B$2:$D$2"
+            "name": "Sheet1!$A$1",
+            "values": "Sheet1!$A$2:$A$10",
+			"categories": "Sheet1!$A$2:$A$10"
         },
         {
-            "name": "Sheet1!$A$3",
-            "categories": "Sheet1!$B$1:$D$1",
-            "values": "Sheet1!$B$3:$D$3"
-        },
-        {
-            "name": "Sheet1!$A$4",
-            "categories": "Sheet1!$B$1:$D$1",
-            "values": "Sheet1!$B$4:$D$4"
+            "name": "Sheet1!$B$1",
+            "values": "Sheet1!$B$2:$B$10",
+			"categories": "Sheet1!$B$2:$B$10"
         }],
         "format":
         {
@@ -53,23 +49,33 @@ func main() {
         },
         "title":
         {
-            "name": "Fruit Line Chart"
+            "name": "井温分布曲线"
         },
         "plotarea":
         {
             "show_bubble_size": true,
             "show_cat_name": false,
             "show_leader_lines": false,
-            "show_percent": true,
+            "show_percent": false,
             "show_series_name": true,
-            "show_val": true
+            "show_val": false
         },
-        "show_blanks_as": "zero"
+        "show_blanks_as": "zero",
+		"x_axis":
+        {
+
+        },
+		"y_axis":
+        {
+            "maximum": 1520,
+            "minimum": 0,
+			"reverse_order": true
+        }
     }`); err != nil {
 		fmt.Println(err)
 	}
 	// Save workbook
-	if err := f.SaveAs("Book1.xlsx"); err != nil {
+	if err := f.SaveAs("井温分布曲线.xlsx"); err != nil {
 		fmt.Println(err)
 	}
 }
