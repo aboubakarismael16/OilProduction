@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/360EntSecGroup-Skylar/excelize"
-
 )
 
 func main() {
@@ -43,7 +42,7 @@ func main() {
         },
         "legend":
         {
-            "position": "top",
+            "position": "left",
             "show_legend_key": false
         },
         "title":
